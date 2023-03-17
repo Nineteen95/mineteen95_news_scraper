@@ -5,6 +5,7 @@ import aiohttp
 import async_timeout
 
 
+
 class ProxyDatabase:
     def __init__(self, db_path):
         self.db_path = db_path
@@ -163,3 +164,25 @@ async def check_proxy(ip, port, session):
     update_proxy_status(ip, port, False)
     return None
 
+
+
+class ProxyManager:
+    def __init__(self, db_path):
+        self.db_path = db_path
+        self.connection = sqlite3.connect(self.db_path)
+        self.cursor = self.connection.cursor()
+
+    def get_proxies(self, country=None):
+        if country is None:
+            self.cursor.execute('SELECT * FROM proxies')
+        else:
+            self.cursor.execute('SELECT * FROM proxies WHERE country=?', (country,))
+        proxies = self.cursor.fetchall()
+        return proxies
+
+    def get_random_proxy(self, country=None):
+        proxies = self.get_proxies(country)
+        if len(proxies) == 0:
+            return None
+        else:
+            return random.choice(proxies)
